@@ -1,0 +1,32 @@
+{
+  "environments": {
+    "dev": {
+      "account": "333680067100",
+      "region": "us-east-1",
+      "createDns": true,
+      "domainStackName": "libraries-domain",
+      "slackNotifyStackName": "slack-cd-approvals-test-notifier"
+    },
+    "prod": {
+      "account": "230391840102",
+      "region": "us-east-1",
+      "createDns": false,
+      "domainStackName": "library-domain",
+      "slackNotifyStackName": "slack-approval-bot-wse-approvals-notifier",
+      "notificationReceivers": "wse-notifications-group@nd.edu"
+    }
+  },
+
+  "owner": "wse",
+  "contact": "web-and-software-engineering-group@nd.edu",
+  "projectName": "static-host-blueprints",
+  "description": "Deploys website assets to a static host in s3.",
+  "stackType": "service",
+  "stage": "dev",
+
+  "gitTokenPath": "/all/github/ndlib-git",
+  "infraRepoOwner": "ndlib",
+  "infraRepoName": "static-host-blueprints",
+  "infraSourceBranch": "main",
+  "smokeTestsPath": "test/newman/smoke_tests.postman_collection.json"
+}

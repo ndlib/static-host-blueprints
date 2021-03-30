@@ -1,0 +1,14 @@
+version: "2"
+plugins:
+  eslint:
+    enabled: true
+  fixme:
+    enabled: true
+exclude_patterns:
+- "config/"
+- "deploy/"
+- "public/"
+- "scripts/"
+- "test/"
+- ".github"
+- "**/node_modules/"
