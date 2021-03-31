@@ -10,12 +10,13 @@ import {
   ViewerCertificate,
   ViewerProtocolPolicy,
 } from '@aws-cdk/aws-cloudfront'
+import { PolicyStatement, Effect, CanonicalUserPrincipal } from '@aws-cdk/aws-iam'
 import { Function, Code, Runtime } from '@aws-cdk/aws-lambda'
 import { CnameRecord, HostedZone } from '@aws-cdk/aws-route53'
 import { Bucket, BucketAccessControl } from '@aws-cdk/aws-s3'
 import { StringParameter } from '@aws-cdk/aws-ssm'
 import * as cdk from '@aws-cdk/core'
-import { Certificate, ICertificate } from '@aws-cdk/aws-certificatemanager'
+import { CertificateHelper } from './certificate-helper'
 
 export interface IStaticHostStackProps extends cdk.StackProps {
   /**
@@ -27,6 +28,11 @@ export interface IStaticHostStackProps extends cdk.StackProps {
    * Application environment, or the stage of a pipeline. Used for naming stacks, hostname, etc.
    */
   readonly stage: string
+
+  /**
+   * Name of the stack without the -stage suffix.
+   */
+  readonly stackNamePrefix: string
 
   /**
    * If provided, this will be used as the prefix in the hostname. If not provided, the stack name will be used.
@@ -75,6 +81,11 @@ export interface IStaticHostStackProps extends cdk.StackProps {
   readonly buildOutputDir?: string
 
   /**
+   * Root page to be served.
+   */
+  readonly indexFilename?: string
+
+  /**
    * Error page configuration for the CloudFront distribution.
    */
   readonly errorConfig?: CfnDistribution.CustomErrorResponseProperty[]
@@ -119,27 +130,23 @@ export class StaticHostStack extends cdk.Stack {
       })
     }
 
-    let domainName: string
-    let websiteCertificate: ICertificate
-    if (props.domainOverride) {
-      const certificateArn = StringParameter.valueForStringParameter(this, props.domainOverride.certificateArnParam)
-      websiteCertificate = Certificate.fromCertificateArn(this, 'WebsiteCertificate', certificateArn)
-      domainName = props.domainOverride.domainName
-    } else {
-      const certificateArn = cdk.Fn.importValue(`${props.domainStackName}:ACMCertificateARN`)
-      websiteCertificate = Certificate.fromCertificateArn(this, 'WebsiteCertificate', certificateArn)
-      domainName = cdk.Fn.importValue(`${props.domainStackName}:DomainName`)
-    }
+    // Find the domain name and certificate to use
+    const certHelper = new CertificateHelper(this, 'CertHelper', {
+      domainStackName: props.domainStackName,
+      domainOverride: props.domainOverride,
+    })
 
     // Use stack name if no hostname prefix is provided
-    let prefix = props.hostnamePrefix || this.stackName
-    if (props.hostnamePrefix && props.stage !== 'prod') {
+    let prefix = props.hostnamePrefix || props.stackNamePrefix
+    if (props.stage !== 'prod') {
       // For non-prod stacks, add the stage to the end of the name.
       prefix += `-${props.stage}`
     }
-    this.hostname = `${prefix}.${domainName}`
+    this.hostname = `${prefix}.${certHelper.domainName}`
 
+    // Create buckets for holding logs and the site contents
     this.logBucket = new Bucket(this, 'LogBucket', {
+      bucketName: `${this.stackName}-logs-${this.account}`,
       accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
       versioned: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -153,26 +160,39 @@ export class StaticHostStack extends cdk.Stack {
     })
 
     this.bucket = new Bucket(this, 'SiteBucket', {
+      bucketName: `${this.stackName}-site-${this.account}`,
       serverAccessLogsBucket: this.logBucket,
-      serverAccessLogsPrefix: `s3/${this.hostname}`,
+      serverAccessLogsPrefix: `s3/${this.hostname}/`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     })
 
+    // Create OAI so CloudFront can access bucket files
+    const oai = new OriginAccessIdentity(this, 'OriginAccessIdentity', {
+      comment: `Static assets in ${this.stackName}`,
+    })
+    this.bucket.addToResourcePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ['s3:GetBucket*', 's3:List*', 's3:GetObject*'],
+        resources: [this.bucket.bucketArn, this.bucket.bucketArn + '/*'],
+        principals: [new CanonicalUserPrincipal(oai.cloudFrontOriginAccessIdentityS3CanonicalUserId)],
+      }),
+    )
+
     this.cloudfront = new CloudFrontWebDistribution(this, 'Distribution', {
       comment: this.hostname,
+      defaultRootObject: props.indexFilename,
       errorConfigurations: props.errorConfig,
       loggingConfig: {
         bucket: this.logBucket,
         includeCookies: true,
-        prefix: `web/${this.hostname}`,
+        prefix: `web/${this.hostname}/`,
       },
       originConfigs: [
         {
           s3OriginSource: {
             s3BucketSource: this.bucket,
-            originAccessIdentity: new OriginAccessIdentity(this, 'OriginAccessIdentity', {
-              comment: `Static assets in ${this.stackName}`,
-            }),
+            originAccessIdentity: oai,
           },
           behaviors: [
             {
@@ -192,7 +212,7 @@ export class StaticHostStack extends cdk.Stack {
           ],
         },
       ],
-      viewerCertificate: ViewerCertificate.fromAcmCertificate(websiteCertificate, {
+      viewerCertificate: ViewerCertificate.fromAcmCertificate(certHelper.websiteCertificate, {
         aliases: [this.hostname],
         securityPolicy: SecurityPolicyProtocol.TLS_V1_1_2016,
         sslMethod: SSLMethod.SNI,
@@ -208,7 +228,7 @@ export class StaticHostStack extends cdk.Stack {
         domainName: this.cloudfront.distributionDomainName,
         zone: HostedZone.fromHostedZoneAttributes(this, 'ImportedHostedZone', {
           hostedZoneId: cdk.Fn.importValue(`${props.domainStackName}:Zone`),
-          zoneName: domainName,
+          zoneName: certHelper.domainName,
         }),
         ttl: cdk.Duration.minutes(15),
       })

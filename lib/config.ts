@@ -1,4 +1,6 @@
 import { CfnDistribution } from '@aws-cdk/aws-cloudfront'
+import { PolicyStatement } from '@aws-cdk/aws-iam'
+import { BuildEnvironmentVariable, BuildEnvironmentVariableType } from '@aws-cdk/aws-codebuild'
 
 export interface IProjectDefaults {
   readonly stackNamePrefix: string
@@ -10,10 +12,17 @@ export interface IProjectDefaults {
   readonly appRepoOwner: string
   readonly appRepoName: string
   readonly appSourceBranch: string
+  readonly createWebhook: boolean
   readonly createSpaRedirects: boolean
   readonly buildScripts?: string[]
   readonly buildOutputDir?: string
+  readonly smokeTestsCollection?: string
+  readonly indexFilename?: string
   readonly errorConfig?: CfnDistribution.CustomErrorResponseProperty[]
+  readonly deploymentPolicies?: PolicyStatement[]
+  readonly buildEnvironmentVariables?: {
+    [key: string]: BuildEnvironmentVariable
+  }
 }
 
 export interface IConfig {
@@ -28,8 +37,10 @@ export const Config: IConfig = {
     appRepoOwner: 'ndlib',
     appRepoName: 'website-events-hackathon',
     appSourceBranch: 'master',
+    createWebhook: true,
     createSpaRedirects: false,
     buildOutputDir: 'hackathon',
+    indexFilename: 'index.shtml',
     errorConfig: [
       {
         errorCode: 403,
@@ -51,16 +62,20 @@ export const Config: IConfig = {
     appRepoOwner: 'ndlib',
     appRepoName: 'website-events-gisday',
     appSourceBranch: 'master',
+    createWebhook: true,
     createSpaRedirects: false,
     buildOutputDir: 'gisday',
+    indexFilename: 'index.shtml',
   },
   christmas: {
     stackNamePrefix: 'christmas',
     appRepoOwner: 'ndlib',
     appRepoName: 'website-events-christmas',
     appSourceBranch: 'master',
+    createWebhook: true,
     createSpaRedirects: false,
     buildOutputDir: 'christmas',
+    indexFilename: '2020/index.html',
   },
 }
 

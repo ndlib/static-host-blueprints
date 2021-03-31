@@ -4,6 +4,7 @@ import { StackTags } from '@ndlib/ndlib-cdk'
 import { getRequiredContext, getContextByNamespace } from '../lib/context-helpers'
 import { ContextEnv } from '../lib/context-env'
 import { StaticHostStack } from '../lib/static-host-stack'
+import { StaticHostPipelineStack } from '../lib/static-host-pipeline'
 import Config from '../lib/config'
 
 const app = new App()
@@ -37,10 +38,18 @@ if (stackType === 'service') {
     ...projectEnv,
   })
 } else {
-  // const pipelineName = `${projectEnv.stackNamePrefix}-pipeline`
-  // new StaticHostipelineStack(app, pipelineName, {
-  //   contextEnvName: envName,
-  //   ...contextEnv,
-  //   ...projectEnv,
-  // })
+  const pipelineName = `${projectEnv.stackNamePrefix}-pipeline`
+  new StaticHostPipelineStack(app, pipelineName, {
+    projectEnv,
+    projectName: projectKey,
+    contextEnvName: envName,
+    contact: getRequiredContext(app.node, 'contact'),
+    owner: getRequiredContext(app.node, 'owner'),
+    gitTokenPath: getRequiredContext(app.node, 'gitTokenPath'),
+    infraRepoOwner: getRequiredContext(app.node, 'infraRepoOwner'),
+    infraRepoName: getRequiredContext(app.node, 'infraRepoName'),
+    infraSourceBranch: getRequiredContext(app.node, 'infraSourceBranch'),
+    smokeTestsPath: getRequiredContext(app.node, 'smokeTestsPath'),
+    ...contextEnv,
+  })
 }

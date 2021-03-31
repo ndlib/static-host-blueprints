@@ -40,7 +40,7 @@ export class PipelineS3Sync extends Construct {
       description: 'Deploys built web components to bucket',
       timeout: Duration.minutes(10),
       environment: {
-        buildImage: LinuxBuildImage.STANDARD_4_0,
+        buildImage: LinuxBuildImage.STANDARD_5_0,
         privileged: true,
       },
       environmentVariables: {
@@ -129,7 +129,7 @@ export class PipelineS3Sync extends Construct {
     )
 
     this.action = new CodeBuildAction({
-      actionName: 'Copy_Build_Files',
+      actionName: 'Sync_Build_Files_To_S3',
       input: props.inputBuildArtifact,
       project: this.project,
       runOrder: 2,
