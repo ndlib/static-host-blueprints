@@ -14,6 +14,7 @@ export interface IProjectDefaults {
   readonly appSourceBranch: string
   readonly createWebhook: boolean
   readonly createSpaRedirects: boolean
+  readonly supportHtmlIncludes: boolean
   readonly buildScripts?: string[]
   readonly buildOutputDir?: string
   readonly smokeTestsCollection?: string
@@ -39,6 +40,7 @@ export const Config: IConfig = {
     appSourceBranch: 'master',
     createWebhook: true,
     createSpaRedirects: false,
+    supportHtmlIncludes: true,
     buildOutputDir: 'hackathon',
     indexFilename: 'index.shtml',
     errorConfig: [
@@ -64,6 +66,7 @@ export const Config: IConfig = {
     appSourceBranch: 'master',
     createWebhook: true,
     createSpaRedirects: false,
+    supportHtmlIncludes: true,
     buildOutputDir: 'gisday',
     indexFilename: 'index.shtml',
   },
@@ -74,6 +77,7 @@ export const Config: IConfig = {
     appSourceBranch: 'master',
     createWebhook: true,
     createSpaRedirects: false,
+    supportHtmlIncludes: false,
     buildOutputDir: 'christmas',
     indexFilename: '2020/index.html',
   },

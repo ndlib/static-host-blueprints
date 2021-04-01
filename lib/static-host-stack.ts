@@ -51,6 +51,11 @@ export interface IStaticHostStackProps extends cdk.StackProps {
   readonly createSpaRedirects?: boolean
 
   /**
+   * If true, a Lambda@Edge will be created that handles SSI transclusion for .shtml files.
+   */
+  readonly supportHtmlIncludes?: boolean
+
+  /**
    * Stack name to import domain name and SSL certificate from.
    */
   readonly domainStackName?: string
@@ -117,16 +122,31 @@ export class StaticHostStack extends cdk.Stack {
    */
   public readonly spaRedirectionLambda?: Function
 
+  /**
+   * Lambda used for .shtml file transclusion.
+   */
+  public readonly transclusionLambda?: Function
+
   constructor(scope: cdk.Construct, id: string, props: IStaticHostStackProps) {
     super(scope, id, props)
 
+    // Create lambdas (if needed)
+    const lambdaRoot = path.join(__dirname, '../src')
     if (props.createSpaRedirects) {
-      const lambdaCodePath = path.join(__dirname, '../src/spaRedirectionLambda')
       this.spaRedirectionLambda = new Function(this, 'SPARedirectionLambda', {
-        code: Code.fromAsset(lambdaCodePath),
+        code: Code.fromAsset(path.join(lambdaRoot, 'spaRedirectionLambda')),
         description: 'Basic rewrite rule to send directory requests to appropriate locations in the SPA.',
         handler: 'handler.handler',
-        runtime: Runtime.NODEJS_14_X,
+        runtime: Runtime.NODEJS_12_X, // Lambda@Edge does not support Node 14 yet
+      })
+    }
+
+    if (props.supportHtmlIncludes) {
+      this.transclusionLambda = new Function(this, 'TransclusionLambda', {
+        code: Code.fromAsset(path.join(lambdaRoot, 'transclusionLambda')),
+        description: 'Handles includes inside shtml files so we can serve them up correctly.',
+        handler: 'handler.handler',
+        runtime: Runtime.NODEJS_12_X,
       })
     }
 
@@ -179,6 +199,20 @@ export class StaticHostStack extends cdk.Stack {
       }),
     )
 
+    const lambdaAssociations = []
+    if (this.spaRedirectionLambda) {
+      lambdaAssociations.push({
+        eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
+        lambdaFunction: this.spaRedirectionLambda.currentVersion,
+      })
+    }
+    if (this.transclusionLambda) {
+      lambdaAssociations.push({
+        eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
+        lambdaFunction: this.transclusionLambda.currentVersion,
+      })
+    }
+
     this.cloudfront = new CloudFrontWebDistribution(this, 'Distribution', {
       comment: this.hostname,
       defaultRootObject: props.indexFilename,
@@ -200,14 +234,7 @@ export class StaticHostStack extends cdk.Stack {
               compress: true,
               defaultTtl: props.contextEnvName === 'dev' ? cdk.Duration.seconds(0) : cdk.Duration.days(1),
               isDefaultBehavior: true,
-              lambdaFunctionAssociations: this.spaRedirectionLambda
-                ? [
-                    {
-                      eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
-                      lambdaFunction: this.spaRedirectionLambda.currentVersion,
-                    },
-                  ]
-                : [],
+              lambdaFunctionAssociations: lambdaAssociations,
             },
           ],
         },
