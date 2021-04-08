@@ -76,16 +76,6 @@ export interface IStaticHostStackProps extends cdk.StackProps {
   }
 
   /**
-   * Name of the repo which contains the site to deploy. (Only used when deploying locally/not from a pipeline.)
-   */
-  readonly appRepoName?: string
-
-  /**
-   * Output directory where build will be. Or in the case of a static site, the folder to upload and make public.
-   */
-  readonly buildOutputDir?: string
-
-  /**
    * Root page to be served.
    */
   readonly indexFilename?: string
