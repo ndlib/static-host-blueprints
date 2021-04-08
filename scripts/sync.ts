@@ -48,7 +48,8 @@ const handler = async () => {
     // Remove existing files first
     execSync(`aws s3 rm s3://$DEST_BUCKET --recursive`, { stdio: 'inherit' })
     // Copy the new build up to s3
-    execSync(`aws s3 cp --recursive "$BUILD_PATH" s3://$DEST_BUCKET`, { stdio: 'inherit' })
+    execSync(`aws s3 cp --recursive "$BUILD_PATH" s3://$DEST_BUCKET --include "*" --exclude "*.shtml"`, { stdio: 'inherit' })
+    execSync(`aws s3 cp --recursive "$BUILD_PATH" s3://$DEST_BUCKET --exclude "*" --include "*.shtml" --content-type "text/html"`, { stdio: 'inherit' })
     // Invalidate the cloudfront cache since files were updated
     execSync(`aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"`, { stdio: 'inherit' })
   } else {

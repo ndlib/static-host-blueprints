@@ -67,7 +67,8 @@ export class PipelineS3Sync extends Construct {
             commands: [
               // Copy new build to the site s3 bucket
               `cd ${props.subdirectory || '.'}`,
-              `aws s3 cp --recursive . s3://$DEST_BUCKET/`,
+              `aws s3 cp --recursive . s3://$DEST_BUCKET/ --include "*" --exclude "*.shtml"`,
+              `aws s3 cp --recursive . s3://$DEST_BUCKET/ --exclude "*" --include "*.shtml" --content-type "text/html"`,
             ],
           },
           post_build: {
