@@ -31,6 +31,7 @@
   "devDependencies": {
     "@aws-cdk/assert": "1.95.1",
     "@types/jest": "^26.0.10",
+    "@types/nock": "^11.1.0",
     "@types/node": "10.17.27",
     "@types/source-map-support": "^0.5.3",
     "@typescript-eslint/eslint-plugin": "^4.14.2",
@@ -66,6 +67,7 @@
     "@aws-cdk/aws-ssm": "1.95.1",
     "@aws-cdk/core": "1.95.1",
     "@ndlib/ndlib-cdk": "1.6.0",
+    "nock": "^13.0.11",
     "source-map-support": "^0.5.16"
   },
   "engines": {

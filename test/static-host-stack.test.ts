@@ -103,7 +103,7 @@ describe('StaticHostStack', () => {
                   },
                 },
                 {
-                  EventType: 'origin-request',
+                  EventType: 'origin-response',
                   LambdaFunctionARN: {
                     Ref: 'TransclusionLambdaCurrentVersion25DE5DA2dbdca68937811b65a7f0c4868eee772c',
                   },

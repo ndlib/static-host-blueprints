@@ -198,7 +198,7 @@ export class StaticHostStack extends cdk.Stack {
     }
     if (this.transclusionLambda) {
       lambdaAssociations.push({
-        eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
+        eventType: LambdaEdgeEventType.ORIGIN_RESPONSE,
         lambdaFunction: this.transclusionLambda.currentVersion,
       })
     }
