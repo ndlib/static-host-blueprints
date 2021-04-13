@@ -20,14 +20,14 @@ const transclude = async (body, bucketName, parentDir) => {
   const matches = Array.from(body.matchAll(includesRegex))
 
   // Fetch all included files
-  const promises = matches.map((match) => exports.getFromS3(bucketName, path.normalize(path.join(parentDir, match[1]))))
+  const promises = matches.map((match) => exports.getFromS3(bucketName, path.resolve(parentDir, match[1])))
   return Promise.all(promises).then(async (s3results) => {
     // Also need to transclude the included page if it is an shtml file
     const includedBodies = await s3results.map(async (response, index) => {
       const pageBody = response.Body.toString()
       const filepath = matches[index][1]
       console.log('retrieved', filepath)
-      const pageDir = path.normalize(path.join(parentDir, path.dirname(filepath)))
+      const pageDir = path.resolve(parentDir, path.dirname(filepath))
       const resultBody = path.extname(filepath) === '.shtml' ? await transclude(pageBody, bucketName, pageDir) : pageBody
       return resultBody
     })
@@ -41,22 +41,28 @@ const transclude = async (body, bucketName, parentDir) => {
 }
 
 module.exports.handler = async (event, context, callback) => {
-  const response = event.Records[0].cf.response
   const request = event.Records[0].cf.request
   const headers = request.headers
   const uri = request.uri
 
+  console.log('Request:', JSON.stringify(request, null, 2))
   if (uri === '/' || path.extname(uri) === '.shtml') {
     // Get the name of the origin bucket that was fetched from
-    const bucketName = request.origin.s3.domainName.replace('.s3.amazonaws.com', '')
-    const modifiedBody = await transclude(response.body, bucketName, path.dirname(uri))
+    // Ex: hackathon-dev-site-333680067100.s3.us-east-1.amazonaws.com -> hackathon-dev-site-333680067100
+    const bucketName = request.origin.s3.domainName.replace(/\.s3\..*\.amazonaws.com/, '')
+
+    // Now get the requested file
+    const filepath = (uri === '/' ? '/index.shtml' : uri)
+    const response = await exports.getFromS3(bucketName, filepath)
+
+    // Transclude any included files in the response body
+    const modifiedBody = await transclude(response.Body.toString(), bucketName, path.dirname(filepath))
     return callback(null, {
       body: modifiedBody,
       bodyEncoding: 'text',
       status: '200',
       statusDescription: 'OK',
       headers: {
-        ...headers,
         'content-type': [
           {
             key: 'Content-Type',
@@ -73,6 +79,6 @@ module.exports.handler = async (event, context, callback) => {
     })
   } else {
     // Was not an shtml file so we can serve it up as is without additional processing
-    return callback(null, response)
+    return callback(null, request)
   }
 }

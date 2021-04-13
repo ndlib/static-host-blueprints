@@ -106,7 +106,7 @@ describe('StaticHostStack', () => {
               {
                 LambdaFunctionAssociations: exactValue([
                   {
-                    EventType: 'origin-response',
+                    EventType: 'origin-request',
                     LambdaFunctionARN: {
                       Ref: stringLike('TransclusionLambdaCurrentVersion*'),
                     },

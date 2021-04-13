@@ -11,7 +11,7 @@ import {
   ViewerCertificate,
   ViewerProtocolPolicy,
 } from '@aws-cdk/aws-cloudfront'
-import { PolicyStatement, Effect, CanonicalUserPrincipal, ArnPrincipal } from '@aws-cdk/aws-iam'
+import { PolicyStatement, Effect, CanonicalUserPrincipal } from '@aws-cdk/aws-iam'
 import { Function, Code, Runtime } from '@aws-cdk/aws-lambda'
 import { CnameRecord, HostedZone } from '@aws-cdk/aws-route53'
 import { Bucket, BucketAccessControl } from '@aws-cdk/aws-s3'
@@ -194,16 +194,6 @@ export class StaticHostStack extends cdk.Stack {
         resources: [this.bucket.bucketArn + '/*'],
         actions: ['s3:GetObject*'],
       }))
-      if (this.transclusionLambda.role) {
-        this.bucket.addToResourcePolicy(
-          new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: ['s3:GetObject*'],
-            resources: [this.bucket.bucketArn + '/*'],
-            principals: [new ArnPrincipal(this.transclusionLambda.role.roleArn)],
-          })
-        )
-      }
     }
 
     // Define behaviors before cloudfront so we can append to it conditionally
@@ -229,7 +219,7 @@ export class StaticHostStack extends cdk.Stack {
         isDefaultBehavior: false,
         pathPattern: '*.shtml',
         lambdaFunctionAssociations: [{
-          eventType: LambdaEdgeEventType.ORIGIN_RESPONSE,
+          eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
           lambdaFunction: this.transclusionLambda.currentVersion,
         }],
       })

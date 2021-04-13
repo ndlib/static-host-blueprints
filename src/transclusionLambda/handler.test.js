@@ -53,6 +53,10 @@ describe('transclusionLambda handler', () => {
     lambdaHandler.getFromS3 = jest.fn().mockImplementation((bucketName, objectPath) => {
       let responseBody
       switch (objectPath) {
+        case '/':
+        case '/index.shtml':
+          responseBody = indexBody
+          break
         case '/include1.shtml':
           responseBody = firstIncludeBody
           break
@@ -92,12 +96,6 @@ describe('transclusionLambda handler', () => {
         status: '200',
         statusDescription: 'OK',
         headers: {
-          host: [
-            {
-              key: 'Host',
-              value: hostname,
-            },
-          ],
           'content-type': [
             {
               key: 'Content-Type',
@@ -113,7 +111,7 @@ describe('transclusionLambda handler', () => {
         },
       }
       expect(data).toEqual(expected)
-      expect(lambdaHandler.getFromS3).toHaveBeenCalledTimes(3)
+      expect(lambdaHandler.getFromS3).toHaveBeenCalledTimes(4)
     }
 
     await lambdaHandler.handler(testEvent, null, mockCallback)
