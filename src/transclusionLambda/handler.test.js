@@ -1,5 +1,4 @@
-const nock = require('nock')
-const testHandler = require('./handler').handler
+const lambdaHandler = require('./handler')
 
 const hostname = 'www.example.com'
 const indexBody = `
@@ -11,8 +10,7 @@ const indexBody = `
   </body>
   </html>
 `
-const firstIncludeBody = `
-    <div>
+const firstIncludeBody = `<div>
       <h1>Navigation or something</h1>
       <!-- #include virtual="/foo/nestedInclude.shtml"-->
     </div>
@@ -38,6 +36,11 @@ const testEvent = {
               },
             ],
           },
+          origin: {
+            s3: {
+              domainName: hostname,
+            },
+          },
         },
       },
     },
@@ -45,22 +48,34 @@ const testEvent = {
 }
 
 describe('transclusionLambda handler', () => {
-  test('recursively replaces includes with correct body content', async () => {
-    const firstIncludeNock = nock('https://' + hostname)
-      .get('/include1.shtml')
-      .reply(200, firstIncludeBody)
-    const secondIncludeNock = nock('https://' + hostname)
-      .get('/include2.shtml')
-      .reply(200, secondIncludeBody)
-    const nestedIncludeNock = nock('https://' + hostname)
-      .get('/foo/nestedInclude.shtml')
-      .reply(200, nestedIncludeBody)
+  beforeEach(() => {
+    console.log = jest.fn()
+    lambdaHandler.getFromS3 = jest.fn().mockImplementation((bucketName, objectPath) => {
+      let responseBody
+      switch (objectPath) {
+        case '/include1.shtml':
+          responseBody = firstIncludeBody
+          break
+        case '/include2.shtml':
+          responseBody = secondIncludeBody
+          break
+        case '/foo/nestedInclude.shtml':
+          responseBody = nestedIncludeBody
+          break
+        default:
+          throw new Error('Unexpected path: ' + objectPath)
+      }
+      return Promise.resolve({
+        Body: responseBody,
+      })
+    })
+  })
 
+  test('recursively replaces includes with correct body content', async () => {
     const mockCallback = (ignore, data) => {
       const expectedBody = `
   <html>
   <body>
-    
     <div>
       <h1>Navigation or something</h1>
       <span>I go under the nav heading</span>
@@ -98,11 +113,9 @@ describe('transclusionLambda handler', () => {
         },
       }
       expect(data).toEqual(expected)
-      expect(firstIncludeNock.isDone()).toBe(true)
-      expect(secondIncludeNock.isDone()).toBe(true)
-      expect(nestedIncludeNock.isDone()).toBe(true)
+      expect(lambdaHandler.getFromS3).toHaveBeenCalledTimes(3)
     }
 
-    await testHandler(testEvent, null, mockCallback)
+    await lambdaHandler.handler(testEvent, null, mockCallback)
   })
 })

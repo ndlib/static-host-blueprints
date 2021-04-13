@@ -1,5 +1,6 @@
 import path = require('path')
 import {
+  Behavior,
   CfnDistribution,
   CloudFrontAllowedMethods,
   CloudFrontWebDistribution,
@@ -10,7 +11,7 @@ import {
   ViewerCertificate,
   ViewerProtocolPolicy,
 } from '@aws-cdk/aws-cloudfront'
-import { PolicyStatement, Effect, CanonicalUserPrincipal } from '@aws-cdk/aws-iam'
+import { PolicyStatement, Effect, CanonicalUserPrincipal, ArnPrincipal } from '@aws-cdk/aws-iam'
 import { Function, Code, Runtime } from '@aws-cdk/aws-lambda'
 import { CnameRecord, HostedZone } from '@aws-cdk/aws-route53'
 import { Bucket, BucketAccessControl } from '@aws-cdk/aws-s3'
@@ -120,26 +121,6 @@ export class StaticHostStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: IStaticHostStackProps) {
     super(scope, id, props)
 
-    // Create lambdas (if needed)
-    const lambdaRoot = path.join(__dirname, '../src')
-    if (props.createSpaRedirects) {
-      this.spaRedirectionLambda = new Function(this, 'SPARedirectionLambda', {
-        code: Code.fromAsset(path.join(lambdaRoot, 'spaRedirectionLambda')),
-        description: 'Basic rewrite rule to send directory requests to appropriate locations in the SPA.',
-        handler: 'handler.handler',
-        runtime: Runtime.NODEJS_12_X, // Lambda@Edge does not support Node 14 yet
-      })
-    }
-
-    if (props.supportHtmlIncludes) {
-      this.transclusionLambda = new Function(this, 'TransclusionLambda', {
-        code: Code.fromAsset(path.join(lambdaRoot, 'transclusionLambda')),
-        description: 'Handles includes inside shtml files so we can serve them up correctly.',
-        handler: 'handler.handler',
-        runtime: Runtime.NODEJS_12_X,
-      })
-    }
-
     // Find the domain name and certificate to use
     const certHelper = new CertificateHelper(this, 'CertHelper', {
       domainStackName: props.domainStackName,
@@ -189,17 +170,68 @@ export class StaticHostStack extends cdk.Stack {
       }),
     )
 
-    const lambdaAssociations = []
-    if (this.spaRedirectionLambda) {
-      lambdaAssociations.push({
-        eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
-        lambdaFunction: this.spaRedirectionLambda.currentVersion,
+    // Create lambdas (if needed)
+    const lambdaRoot = path.join(__dirname, '../src')
+    if (props.createSpaRedirects) {
+      this.spaRedirectionLambda = new Function(this, 'SPARedirectionLambda', {
+        code: Code.fromAsset(path.join(lambdaRoot, 'spaRedirectionLambda')),
+        description: 'Basic rewrite rule to send directory requests to appropriate locations in the SPA.',
+        handler: 'handler.handler',
+        runtime: Runtime.NODEJS_12_X, // Lambda@Edge does not support Node 14 yet
+        timeout: cdk.Duration.seconds(10),
       })
     }
+
+    if (props.supportHtmlIncludes) {
+      this.transclusionLambda = new Function(this, 'TransclusionLambda', {
+        code: Code.fromAsset(path.join(lambdaRoot, 'transclusionLambda')),
+        description: 'Handles includes inside shtml files so we can serve them up correctly.',
+        handler: 'handler.handler',
+        runtime: Runtime.NODEJS_12_X,
+        timeout: cdk.Duration.seconds(10),
+      })
+      this.transclusionLambda.addToRolePolicy(new PolicyStatement({
+        resources: [this.bucket.bucketArn + '/*'],
+        actions: ['s3:GetObject*'],
+      }))
+      if (this.transclusionLambda.role) {
+        this.bucket.addToResourcePolicy(
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ['s3:GetObject*'],
+            resources: [this.bucket.bucketArn + '/*'],
+            principals: [new ArnPrincipal(this.transclusionLambda.role.roleArn)],
+          })
+        )
+      }
+    }
+
+    // Define behaviors before cloudfront so we can append to it conditionally
+    const originBehaviors: Behavior[] = [
+      // Default behavior is required
+      {
+        allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+        compress: true,
+        defaultTtl: props.contextEnvName === 'dev' ? cdk.Duration.seconds(0) : cdk.Duration.days(1),
+        isDefaultBehavior: true,
+        lambdaFunctionAssociations: this.spaRedirectionLambda ? [{
+          eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
+          lambdaFunction: this.spaRedirectionLambda.currentVersion,
+        }] : undefined,
+      }
+    ]
     if (this.transclusionLambda) {
-      lambdaAssociations.push({
-        eventType: LambdaEdgeEventType.ORIGIN_RESPONSE,
-        lambdaFunction: this.transclusionLambda.currentVersion,
+      // Create a separate behavior for this lambda since it only applies to specific file types (.shtml)
+      originBehaviors.push({
+        allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+        compress: true,
+        defaultTtl: props.contextEnvName === 'dev' ? cdk.Duration.seconds(0) : cdk.Duration.days(1),
+        isDefaultBehavior: false,
+        pathPattern: '*.shtml',
+        lambdaFunctionAssociations: [{
+          eventType: LambdaEdgeEventType.ORIGIN_RESPONSE,
+          lambdaFunction: this.transclusionLambda.currentVersion,
+        }],
       })
     }
 
@@ -218,15 +250,7 @@ export class StaticHostStack extends cdk.Stack {
             s3BucketSource: this.bucket,
             originAccessIdentity: oai,
           },
-          behaviors: [
-            {
-              allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
-              compress: true,
-              defaultTtl: props.contextEnvName === 'dev' ? cdk.Duration.seconds(0) : cdk.Duration.days(1),
-              isDefaultBehavior: true,
-              lambdaFunctionAssociations: lambdaAssociations,
-            },
-          ],
+          behaviors: originBehaviors,
         },
       ],
       viewerCertificate: ViewerCertificate.fromAcmCertificate(certHelper.websiteCertificate, {

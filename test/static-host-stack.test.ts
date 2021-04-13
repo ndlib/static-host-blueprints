@@ -1,4 +1,12 @@
-import { expect as expectCDK, haveResource, haveResourceLike, exactValue, countResources } from '@aws-cdk/assert'
+import {
+  expect as expectCDK,
+  haveResource,
+  haveResourceLike,
+  exactValue,
+  countResources,
+  stringLike,
+  ABSENT,
+} from '@aws-cdk/assert'
 import cdk = require('@aws-cdk/core')
 import { CfnDistribution } from '@aws-cdk/aws-cloudfront'
 import { StaticHostStack } from '../lib/static-host-stack'
@@ -94,18 +102,24 @@ describe('StaticHostStack', () => {
       expectCDK(stack).to(
         haveResourceLike('AWS::CloudFront::Distribution', {
           DistributionConfig: {
+            CacheBehaviors: [
+              {
+                LambdaFunctionAssociations: exactValue([
+                  {
+                    EventType: 'origin-response',
+                    LambdaFunctionARN: {
+                      Ref: stringLike('TransclusionLambdaCurrentVersion*'),
+                    },
+                  },
+                ]),
+              },
+            ],
             DefaultCacheBehavior: {
               LambdaFunctionAssociations: exactValue([
                 {
                   EventType: 'origin-request',
                   LambdaFunctionARN: {
-                    Ref: 'SPARedirectionLambdaCurrentVersion18B130029709d27b5c5ffc216676c9a2331069e1',
-                  },
-                },
-                {
-                  EventType: 'origin-response',
-                  LambdaFunctionARN: {
-                    Ref: 'TransclusionLambdaCurrentVersion25DE5DA2dbdca68937811b65a7f0c4868eee772c',
+                    Ref: stringLike('SPARedirectionLambdaCurrentVersion*'),
                   },
                 },
               ]),
@@ -221,8 +235,9 @@ describe('StaticHostStack', () => {
       expectCDK(stack).to(
         haveResourceLike('AWS::CloudFront::Distribution', {
           DistributionConfig: {
+            CacheBehaviors: ABSENT,
             DefaultCacheBehavior: {
-              LambdaFunctionAssociations: exactValue([]),
+              LambdaFunctionAssociations: ABSENT,
             },
           },
         }),

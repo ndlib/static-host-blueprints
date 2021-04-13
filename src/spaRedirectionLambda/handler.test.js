@@ -46,7 +46,7 @@ describe('URL ReWrites', () => {
       // This is a mock callback that we'll pass to the handler we are testing so that we can
       // simulate what will happen when deployed. This mock function is where we inspect
       // the data that the handler will ultimately be returned to Cloudfront.
-      const mockCallback = (err, data) => {
+      const mockCallback = (ignore, data) => {
         expect(data).toEqual({ uri: testObj.expected_uri })
       }
       testHandler(testEvent, null, mockCallback)

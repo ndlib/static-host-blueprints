@@ -37,7 +37,7 @@
     "@typescript-eslint/eslint-plugin": "^4.14.2",
     "@typescript-eslint/parser": "^4.14.2",
     "aws-cdk": "1.95.1",
-    "aws-sdk": "^2.876.0",
+    "aws-sdk": "^2.885.0",
     "babel-eslint": "^10.1.0",
     "eslint": "^7.19.0",
     "eslint-config-prettier": "^7.2.0",
@@ -67,7 +67,6 @@
     "@aws-cdk/aws-ssm": "1.95.1",
     "@aws-cdk/core": "1.95.1",
     "@ndlib/ndlib-cdk": "1.6.0",
-    "nock": "^13.0.11",
     "source-map-support": "^0.5.16"
   },
   "engines": {
