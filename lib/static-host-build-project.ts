@@ -23,6 +23,25 @@ export interface IStaticHostBuildProjectProps extends PipelineProjectProps {
 
 export default class StaticHostBuildProject extends PipelineProject {
   constructor(scope: cdk.Construct, id: string, props: IStaticHostBuildProjectProps) {
+    // These are the keys from the project env that we will pass on as additional context values.
+    // This is needed in case they were overridden when the pipeline was deployed instead of changing the config.
+    const projectContextKeys: Array<keyof IProjectDefaults> = [
+      'stackNamePrefix',
+      'hostnamePrefix',
+      'createSpaRedirects',
+      'supportHtmlIncludes',
+      'indexFilename',
+      'cacheTtl',
+    ]
+
+    const additionalContext: string[] = []
+    projectContextKeys.forEach(key => {
+      if (!props.projectEnv[key]) {
+        return
+      }
+      additionalContext.push(`-c ${props.projectName}:${key}="${props.projectEnv[key]}"`)
+    })
+
     const projectProps = {
       environment: {
         buildImage: LinuxBuildImage.STANDARD_5_0,
@@ -71,6 +90,7 @@ export default class StaticHostBuildProject extends PipelineProject {
                 -c contact="${props.contact}" \
                 -c owner="${props.owner}" \
                 -c stackType=service \
+                ${additionalContext.join(' ')} \
                 --require-approval=never
               `,
             ],
