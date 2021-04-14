@@ -10,6 +10,7 @@ import {
 import cdk = require('@aws-cdk/core')
 import { CfnDistribution } from '@aws-cdk/aws-cloudfront'
 import { StaticHostStack } from '../lib/static-host-stack'
+import { OverrideStages } from '../lib/config'
 
 describe('StaticHostStack', () => {
   interface ISetupParams {
@@ -20,6 +21,7 @@ describe('StaticHostStack', () => {
     domainOverride?: {
       domainName: string
       certificateArnParam: string
+      stages: OverrideStages
     }
     errorConfig?: CfnDistribution.CustomErrorResponseProperty[]
   }
@@ -204,6 +206,7 @@ describe('StaticHostStack', () => {
       domainOverride: {
         domainName: 'example.com',
         certificateArnParam: 'arn::foo:bar',
+        stages: OverrideStages.PROD,
       },
       errorConfig: [
         {

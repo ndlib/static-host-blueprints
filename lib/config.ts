@@ -3,12 +3,19 @@ import { PolicyStatement } from '@aws-cdk/aws-iam'
 import { BuildEnvironmentVariable } from '@aws-cdk/aws-codebuild'
 import { Duration } from '@aws-cdk/core'
 
+export enum OverrideStages {
+  TEST,
+  PROD,
+  ALL,
+}
+
 export interface IProjectDefaults {
   readonly stackNamePrefix: string
   readonly hostnamePrefix?: string
   readonly domainOverride?: {
     readonly domainName: string
     readonly certificateArnParam: string
+    readonly stages: OverrideStages
   }
   readonly appRepoOwner: string
   readonly appRepoName: string
@@ -141,6 +148,22 @@ export const Config: IConfig = {
     buildOutputDir: 'src',
     cacheTtl: Duration.hours(1),
     // TODO: Implement selenium smoke tests
+  },
+  fatherTed: {
+    stackNamePrefix: 'father-ted-archive',
+    hostnamePrefix: 'hesburghportal',
+    domainOverride: {
+      domainName: 'nd.edu',
+      certificateArnParam: '/all/hesburghportal/certificatearn',
+      stages: OverrideStages.PROD,
+    },
+    appRepoOwner: 'ndlib',
+    appRepoName: 'father-ted-archive',
+    appSourceBranch: 'master',
+    createWebhook: true,
+    createSpaRedirects: false,
+    supportHtmlIncludes: false,
+    smokeTestsCollection: 'tests/postman/qa_collection.json'
   },
 }
 

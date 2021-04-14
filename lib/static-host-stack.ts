@@ -18,6 +18,7 @@ import { Bucket, BucketAccessControl } from '@aws-cdk/aws-s3'
 import { StringParameter } from '@aws-cdk/aws-ssm'
 import * as cdk from '@aws-cdk/core'
 import { CertificateHelper } from './certificate-helper'
+import { OverrideStages } from './config'
 
 export interface IStaticHostStackProps extends cdk.StackProps {
   /**
@@ -74,6 +75,11 @@ export interface IStaticHostStackProps extends cdk.StackProps {
      * Path in parameter store that contains the ARN of the SSL certificate to use.
      */
     readonly certificateArnParam: string
+
+    /**
+     * Represents the stages in which the domain override is applied.
+     */
+    readonly stages: OverrideStages
   }
 
   /**
@@ -128,6 +134,7 @@ export class StaticHostStack extends cdk.Stack {
 
     // Find the domain name and certificate to use
     const certHelper = new CertificateHelper(this, 'CertHelper', {
+      stage: props.stage,
       domainStackName: props.domainStackName,
       domainOverride: props.domainOverride,
     })

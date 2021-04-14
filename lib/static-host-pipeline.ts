@@ -41,14 +41,20 @@ export class StaticHostPipelineStack extends cdk.Stack {
     super(scope, id, props)
 
     // Find the domain name and certificate to use
-    const certHelper = new CertificateHelper(this, 'CertHelper', {
+    const testCertHelper = new CertificateHelper(this, 'TestCertHelper', {
+      stage: 'test',
+      domainStackName: props.domainStackName,
+      domainOverride: props.projectEnv.domainOverride,
+    })
+    const prodCertHelper = new CertificateHelper(this, 'ProdCertHelper', {
+      stage: 'prod',
       domainStackName: props.domainStackName,
       domainOverride: props.projectEnv.domainOverride,
     })
 
     const prefix = props.projectEnv.hostnamePrefix || props.projectEnv.stackNamePrefix
-    const testHost = `${prefix}-test.${certHelper.domainName}`
-    const prodHost = `${prefix}.${certHelper.domainName}`
+    const testHost = `${prefix}-test.${testCertHelper.domainName}`
+    const prodHost = `${prefix}.${prodCertHelper.domainName}`
 
     // S3 BUCKET FOR STORING ARTIFACTS
     const artifactBucket = new ArtifactBucket(this, 'ArtifactBucket', {})

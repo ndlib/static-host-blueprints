@@ -1,12 +1,15 @@
 import { ICertificate, Certificate } from '@aws-cdk/aws-certificatemanager'
 import { StringParameter } from '@aws-cdk/aws-ssm'
 import { Construct, Fn } from '@aws-cdk/core'
+import { OverrideStages } from './config'
 
 export interface ICertificateHelperProps {
+  readonly stage: string
   readonly domainStackName?: string
   readonly domainOverride?: {
     readonly domainName: string
     readonly certificateArnParam: string
+    readonly stages: OverrideStages
   }
 }
 
@@ -18,7 +21,11 @@ export class CertificateHelper {
   public readonly websiteCertificate: ICertificate
 
   constructor(scope: Construct, id: string, props: ICertificateHelperProps) {
-    if (props.domainOverride) {
+    if (props.domainOverride && (
+      props.domainOverride.stages === OverrideStages.ALL ||
+      (props.domainOverride.stages === OverrideStages.PROD && props.stage === 'prod') ||
+      (props.domainOverride.stages === OverrideStages.TEST && props.stage === 'test')
+    )) {
       const certificateArn = StringParameter.valueForStringParameter(scope, props.domainOverride.certificateArnParam)
       this.websiteCertificate = Certificate.fromCertificateArn(scope, `${id}_WebsiteCertificate`, certificateArn)
       this.domainName = props.domainOverride.domainName
