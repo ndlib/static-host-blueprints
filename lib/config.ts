@@ -1,6 +1,7 @@
 import { CfnDistribution } from '@aws-cdk/aws-cloudfront'
 import { PolicyStatement } from '@aws-cdk/aws-iam'
 import { BuildEnvironmentVariable } from '@aws-cdk/aws-codebuild'
+import { Duration } from '@aws-cdk/core'
 
 export interface IProjectDefaults {
   readonly stackNamePrefix: string
@@ -19,6 +20,7 @@ export interface IProjectDefaults {
   readonly buildOutputDir?: string
   readonly smokeTestsCollection?: string
   readonly indexFilename?: string
+  readonly cacheTtl?: Duration
   readonly errorConfig?: CfnDistribution.CustomErrorResponseProperty[]
   readonly deploymentPolicies?: PolicyStatement[]
   readonly buildEnvironmentVariables?: {
@@ -116,6 +118,16 @@ export const Config: IConfig = {
     supportHtmlIncludes: false,
     buildOutputDir: 'christmas',
     indexFilename: '2020/index.html',
+  },
+  serviceContinuity: {
+    stackNamePrefix: 'service-continuity',
+    appRepoOwner: 'ndlib',
+    appRepoName: 'website-service-continuity',
+    appSourceBranch: 'master',
+    createWebhook: true,
+    createSpaRedirects: false,
+    supportHtmlIncludes: false,
+    cacheTtl: Duration.hours(1),
   },
 }
 

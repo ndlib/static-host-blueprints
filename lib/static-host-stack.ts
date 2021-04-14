@@ -82,6 +82,11 @@ export interface IStaticHostStackProps extends cdk.StackProps {
   readonly indexFilename?: string
 
   /**
+   * How long to cache origin responses for (defaults to 1 day)
+   */
+  readonly cacheTtl?: cdk.Duration
+
+  /**
    * Error page configuration for the CloudFront distribution.
    */
   readonly errorConfig?: CfnDistribution.CustomErrorResponseProperty[]
@@ -202,7 +207,7 @@ export class StaticHostStack extends cdk.Stack {
       {
         allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
         compress: true,
-        defaultTtl: props.contextEnvName === 'dev' ? cdk.Duration.seconds(0) : cdk.Duration.days(1),
+        defaultTtl: props.contextEnvName === 'dev' ? cdk.Duration.seconds(0) : (props.cacheTtl || cdk.Duration.days(1)),
         isDefaultBehavior: true,
         lambdaFunctionAssociations: this.spaRedirectionLambda ? [{
           eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
@@ -215,7 +220,7 @@ export class StaticHostStack extends cdk.Stack {
       originBehaviors.push({
         allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
         compress: true,
-        defaultTtl: props.contextEnvName === 'dev' ? cdk.Duration.seconds(0) : cdk.Duration.days(1),
+        defaultTtl: props.contextEnvName === 'dev' ? cdk.Duration.seconds(0) : (props.cacheTtl || cdk.Duration.days(1)),
         isDefaultBehavior: false,
         pathPattern: '*.shtml',
         lambdaFunctionAssociations: [{
