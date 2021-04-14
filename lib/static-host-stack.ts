@@ -225,10 +225,29 @@ export class StaticHostStack extends cdk.Stack {
       })
     }
 
+    // Won't work right if it starts with slash. It's an easy mistake to make so just handle it here
+    let indexPath = props.indexFilename || 'index.html'
+    if (indexPath.startsWith('/')) {
+      indexPath = indexPath.substring(1)
+    }
+
     this.cloudfront = new CloudFrontWebDistribution(this, 'Distribution', {
       comment: this.hostname,
-      defaultRootObject: props.indexFilename,
-      errorConfigurations: props.errorConfig,
+      defaultRootObject: indexPath,
+      errorConfigurations: props.errorConfig || [
+        {
+          errorCode: 403,
+          responseCode: 403,
+          responsePagePath: '/' + indexPath,
+          errorCachingMinTtl: 300,
+        },
+        {
+          errorCode: 404,
+          responseCode: 404,
+          responsePagePath: '/' + indexPath,
+          errorCachingMinTtl: 300,
+        },
+      ],
       loggingConfig: {
         bucket: this.logBucket,
         includeCookies: true,
