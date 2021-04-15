@@ -65,7 +65,7 @@ export default class StaticHostBuildProject extends PipelineProject {
       buildSpec: BuildSpec.fromObject({
         version: '0.2',
         artifacts: {
-          'base-directory': props.outputDirectory || '/',
+          'base-directory': props.outputDirectory || './',
           files: ['**/*'],
         },
         phases: {
