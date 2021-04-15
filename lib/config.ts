@@ -157,12 +157,6 @@ export const Config: IConfig = {
       certificateArnParam: '/all/hesburghportal/certificatearn',
       stages: OverrideStages.PROD,
     },
-    deploymentPolicies: [
-      new PolicyStatement({
-        resources: [Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/hesburghportal/*')],
-        actions: ['ssm:GetParametersByPath', 'ssm:GetParameter', 'ssm:GetParameters'],
-      }),
-    ],
     appRepoOwner: 'ndlib',
     appRepoName: 'father-ted-archive',
     appSourceBranch: 'master',

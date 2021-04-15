@@ -8,6 +8,7 @@ export interface IStaticHostBuildRoleProps extends RoleProps {
   readonly artifactBucket: Bucket
   readonly createDns: boolean
   readonly domainStackName?: string
+  readonly certificateArnParam?: string
   readonly additionalPolicies?: PolicyStatement[]
 }
 
@@ -187,6 +188,14 @@ export class StaticHostBuildRole extends Role {
         actions: ['ssm:GetParametersByPath', 'ssm:GetParameter', 'ssm:GetParameters'],
       }),
     )
+    if (props.certificateArnParam) {
+      this.addToPolicy(
+        new PolicyStatement({
+          resources: [cdk.Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter' + props.certificateArnParam)],
+          actions: ['ssm:GetParametersByPath', 'ssm:GetParameter', 'ssm:GetParameters'],
+        }),
+      )
+    }
 
     // Allow getting needed secrets from SecretsManager
     this.addToPolicy(

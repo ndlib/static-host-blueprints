@@ -70,6 +70,7 @@ export class StaticHostPipelineStack extends cdk.Stack {
       artifactBucket,
       createDns: props.createDns,
       domainStackName: props.domainStackName,
+      certificateArnParam: props.projectEnv.domainOverride?.certificateArnParam,
       additionalPolicies: props.projectEnv.deploymentPolicies,
     })
 
