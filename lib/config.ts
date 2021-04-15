@@ -1,7 +1,7 @@
 import { CfnDistribution } from '@aws-cdk/aws-cloudfront'
 import { PolicyStatement } from '@aws-cdk/aws-iam'
 import { BuildEnvironmentVariable } from '@aws-cdk/aws-codebuild'
-import { Duration } from '@aws-cdk/core'
+import { Duration, Fn } from '@aws-cdk/core'
 
 export enum OverrideStages {
   TEST,
@@ -157,6 +157,12 @@ export const Config: IConfig = {
       certificateArnParam: '/all/hesburghportal/certificatearn',
       stages: OverrideStages.PROD,
     },
+    deploymentPolicies: [
+      new PolicyStatement({
+        resources: [Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/hesburghportal/*')],
+        actions: ['ssm:GetParametersByPath', 'ssm:GetParameter', 'ssm:GetParameters'],
+      }),
+    ],
     appRepoOwner: 'ndlib',
     appRepoName: 'father-ted-archive',
     appSourceBranch: 'master',
