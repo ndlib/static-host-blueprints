@@ -122,7 +122,7 @@ export class PipelineS3Sync extends Construct {
     )
     this.project.addToRolePolicy(
       new PolicyStatement({
-        actions: ['ssm:*'],
+        actions: ['ssm:GetParametersByPath', 'ssm:GetParameter', 'ssm:GetParameters'],
         resources: [
           Fn.sub('arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/all/stacks/' + props.targetStack + '/*'),
         ],

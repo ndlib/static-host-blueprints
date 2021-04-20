@@ -149,7 +149,6 @@ export class StaticHostStack extends cdk.Stack {
 
     // Create buckets for holding logs and the site contents
     this.logBucket = new Bucket(this, 'LogBucket', {
-      bucketName: `${this.stackName}-logs-${this.account}`,
       accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,
       versioned: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -163,7 +162,6 @@ export class StaticHostStack extends cdk.Stack {
     })
 
     this.bucket = new Bucket(this, 'SiteBucket', {
-      bucketName: `${this.stackName}-site-${this.account}`,
       serverAccessLogsBucket: this.logBucket,
       serverAccessLogsPrefix: `s3/${this.hostname}/`,
       removalPolicy: cdk.RemovalPolicy.DESTROY,

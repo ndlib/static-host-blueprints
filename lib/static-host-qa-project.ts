@@ -26,7 +26,7 @@ export class StaticHostQaProject extends PipelineProject {
               nodejs: '14.x',
             },
             commands: [
-              'npm install -g newman',
+              'npm install -g newman@5.2.2',
               'echo "Ensure that the Newman spec is readable"',
               `chmod 755 ${props.smokeTestsCollection}`,
             ],

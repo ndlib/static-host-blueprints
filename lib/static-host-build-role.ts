@@ -102,10 +102,7 @@ export class StaticHostBuildRole extends Role {
     // Allow creating and managing s3 bucket for site
     this.addToPolicy(
       new PolicyStatement({
-        resources: [
-          ...serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName + '-logs-${AWS::AccountId}')),
-          ...serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName + '-site-${AWS::AccountId}')),
-        ],
+        resources: serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName + '*')),
         actions: [
           's3:CreateBucket',
           's3:ListBucket*',
@@ -118,10 +115,7 @@ export class StaticHostBuildRole extends Role {
     )
     this.addToPolicy(
       new PolicyStatement({
-        resources: [
-          ...serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName + '-logs-${AWS::AccountId}/*')),
-          ...serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName + '-site-${AWS::AccountId}/*')),
-        ],
+        resources: serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName + '*/*')),
         actions: ['s3:GetObject*', 's3:DeleteObject*', 's3:PutObject*', 's3:Abort*', 's3:ReplicateTags'],
       }),
     )

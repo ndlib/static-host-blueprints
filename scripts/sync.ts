@@ -1,3 +1,9 @@
+/*
+ * USED FOR DEVELOPMENT PURPOSES
+ * This script will sync up a local site build (or static site) to an s3 bucket.
+ * Run with yarn sync <projectName> AFTER you have deployed an appropriate service stack for the project.
+ * Accepts stackName as an optional argument in case you overwrote the default stack name in these blueprints.
+ */
 import AWS = require('aws-sdk')
 const ssm = new AWS.SSM({ apiVersion: '2014-11-06', region: 'us-east-1' })
 import { execSync } from 'child_process'
@@ -50,8 +56,6 @@ const handler = async () => {
     // Copy the new build up to s3
     execSync(`aws s3 cp --recursive "$BUILD_PATH" s3://$DEST_BUCKET --include "*" --exclude "*.shtml"`, { stdio: 'inherit' })
     execSync(`aws s3 cp --recursive "$BUILD_PATH" s3://$DEST_BUCKET --exclude "*" --include "*.shtml" --content-type "text/html"`, { stdio: 'inherit' })
-    // Invalidate the cloudfront cache since files were updated
-    execSync(`aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"`, { stdio: 'inherit' })
   } else {
     if (!bucketNameParam.Parameter) {
       console.error(`Failed to get parameter ${bucketNameParamPath}`)
