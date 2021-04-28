@@ -1,10 +1,8 @@
-import path = require('path')
 import {
   Behavior,
   CfnDistribution,
   CloudFrontAllowedMethods,
   CloudFrontWebDistribution,
-  LambdaEdgeEventType,
   OriginAccessIdentity,
   SecurityPolicyProtocol,
   SSLMethod,
@@ -12,7 +10,6 @@ import {
   ViewerProtocolPolicy,
 } from '@aws-cdk/aws-cloudfront'
 import { PolicyStatement, Effect, CanonicalUserPrincipal } from '@aws-cdk/aws-iam'
-import { Function, Code, Runtime } from '@aws-cdk/aws-lambda'
 import { CnameRecord, HostedZone } from '@aws-cdk/aws-route53'
 import { Bucket, BucketAccessControl } from '@aws-cdk/aws-s3'
 import { StringParameter } from '@aws-cdk/aws-ssm'
