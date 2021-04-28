@@ -13,7 +13,6 @@ import { CertificateHelper } from './certificate-helper'
 import { IProjectDefaults } from './config'
 import StaticHostBuildProject from './static-host-build-project'
 import StaticHostBuildRole from './static-host-build-role'
-import StaticHostQaProject from './static-host-qa-project'
 import { PipelineS3Sync } from './pipeline-s3-sync'
 
 const stages = ['test', 'prod']
@@ -189,22 +188,20 @@ export class StaticHostPipelineStack extends cdk.Stack {
     })
 
     // AUTOMATED QA
-    const prodQaProject = new StaticHostQaProject(this, 'QAProjectProd', {
+    const prodNewmanRunner = new NewmanRunner(this, 'QAProjectProd', {
       role: codebuildRole,
-      hostname: prodHost,
-      smokeTestsCollection: props.projectEnv.smokeTestsCollection || props.smokeTestsPath,
-    })
-    const prodSmokeTestsAction = new CodeBuildAction({
-      input: props.projectEnv.smokeTestsCollection ? appSourceArtifact : infraSourceArtifact,
-      project: prodQaProject,
+      collectionPath: props.projectEnv.smokeTestsCollection || props.smokeTestsPath,
+      collectionVariables: {
+        hostname: prodHost,
+      },
       actionName: 'SmokeTests',
-      runOrder: 98,
+      sourceArtifact: props.projectEnv.smokeTestsCollection ? appSourceArtifact : infraSourceArtifact,
     })
 
     // PROD STAGE
     pipeline.addStage({
       stageName: 'DeployToProd',
-      actions: [deployToProdAction, s3syncProd.action, prodSmokeTestsAction],
+      actions: [deployToProdAction, s3syncProd.action, prodNewmanRunner.action],
     })
   }
 }
