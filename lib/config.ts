@@ -1,7 +1,7 @@
 import { CfnDistribution } from '@aws-cdk/aws-cloudfront'
 import { PolicyStatement } from '@aws-cdk/aws-iam'
 import { BuildEnvironmentVariable } from '@aws-cdk/aws-codebuild'
-import { Duration, Fn } from '@aws-cdk/core'
+import { Duration } from '@aws-cdk/core'
 
 export enum OverrideStages {
   TEST,
