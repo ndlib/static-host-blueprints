@@ -8,7 +8,7 @@ import {
 import { Role, ServicePrincipal } from '@aws-cdk/aws-iam'
 import * as sns from '@aws-cdk/aws-sns'
 import * as cdk from '@aws-cdk/core'
-import { ArtifactBucket, PipelineNotifications, SlackApproval } from '@ndlib/ndlib-cdk'
+import { ArtifactBucket, PipelineNotifications, SlackApproval, NewmanRunner } from '@ndlib/ndlib-cdk'
 import { CertificateHelper } from './certificate-helper'
 import { IProjectDefaults } from './config'
 import StaticHostBuildProject from './static-host-build-project'
@@ -134,16 +134,14 @@ export class StaticHostPipelineStack extends cdk.Stack {
     })
 
     // AUTOMATED QA
-    const qaProject = new StaticHostQaProject(this, 'QAProject', {
+    const newmanRunner = new NewmanRunner(this, 'QAProject', {
       role: codebuildRole,
-      hostname: testHost,
-      smokeTestsCollection: props.projectEnv.smokeTestsCollection || props.smokeTestsPath,
-    })
-    const smokeTestsAction = new CodeBuildAction({
-      input: props.projectEnv.smokeTestsCollection ? appSourceArtifact : infraSourceArtifact,
-      project: qaProject,
+      collectionPath: props.projectEnv.smokeTestsCollection || props.smokeTestsPath,
+      collectionVariables: {
+        hostname: testHost,
+      },
       actionName: 'SmokeTests',
-      runOrder: 98,
+      sourceArtifact: props.projectEnv.smokeTestsCollection ? appSourceArtifact : infraSourceArtifact,
     })
 
     // APPROVAL
@@ -166,7 +164,7 @@ export class StaticHostPipelineStack extends cdk.Stack {
     // TEST STAGE
     pipeline.addStage({
       stageName: 'DeployToTest',
-      actions: [deployToTestAction, s3syncTest.action, smokeTestsAction, manualApprovalAction],
+      actions: [deployToTestAction, s3syncTest.action, newmanRunner.action, manualApprovalAction],
     })
 
     // DEPLOY TO PROD

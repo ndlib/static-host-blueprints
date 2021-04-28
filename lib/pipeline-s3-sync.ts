@@ -27,6 +27,11 @@ export interface IPipelineS3SyncProps extends PipelineProjectProps {
    * Subdirectory of files to sync. Optional; will sync everything by default.
    */
   readonly subdirectory?: string
+
+  /**
+   * Whether or not to invalidate the cloudfront cache after pushing files.
+   */
+  readonly invalidateCache?: boolean
 }
 
 export class PipelineS3Sync extends Construct {
@@ -72,7 +77,9 @@ export class PipelineS3Sync extends Construct {
             ],
           },
           post_build: {
-            commands: [`aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"`],
+            commands: (props.invalidateCache ?? true) ? [
+              `aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"`,
+            ] : [],
           },
         },
         version: '0.2',
