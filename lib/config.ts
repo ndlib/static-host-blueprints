@@ -26,6 +26,7 @@ export interface IProjectDefaults {
   readonly buildScripts?: string[]
   readonly buildOutputDir?: string
   readonly smokeTestsCollection?: string
+  readonly smokeTestsResponseTime?: number
   readonly indexFilename?: string
   readonly cacheTtl?: Duration
   readonly errorConfig?: CfnDistribution.CustomErrorResponseProperty[]

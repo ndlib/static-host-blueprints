@@ -138,7 +138,7 @@ export class StaticHostPipelineStack extends cdk.Stack {
       collectionPath: props.projectEnv.smokeTestsCollection || props.smokeTestsPath,
       collectionVariables: {
         hostname: testHost,
-        maxResponseTime: props.projectEnv.supportHtmlIncludes ? '5000' : '1000', // Transclusion is slow
+        maxResponseTime: (props.projectEnv.smokeTestsResponseTime || props.projectEnv.supportHtmlIncludes ? 5000 : 1000).toString()
       },
       actionName: 'SmokeTests',
       sourceArtifact: props.projectEnv.smokeTestsCollection ? appSourceArtifact : infraSourceArtifact,
@@ -194,7 +194,7 @@ export class StaticHostPipelineStack extends cdk.Stack {
       collectionPath: props.projectEnv.smokeTestsCollection || props.smokeTestsPath,
       collectionVariables: {
         hostname: prodHost,
-        maxResponseTime: props.projectEnv.supportHtmlIncludes ? '5000' : '1000', // Transclusion is slow
+        maxResponseTime: (props.projectEnv.smokeTestsResponseTime || props.projectEnv.supportHtmlIncludes ? 5000 : 1000).toString()
       },
       actionName: 'SmokeTests',
       sourceArtifact: props.projectEnv.smokeTestsCollection ? appSourceArtifact : infraSourceArtifact,
