@@ -106,7 +106,6 @@ export const Config: IConfig = {
   },
   gisday: {
     stackNamePrefix: 'gis-day',
-    hostnamePrefix: 'gisday',
     appRepoOwner: 'ndlib',
     appRepoName: 'website-events-gisday',
     appSourceBranch: 'master',
@@ -126,6 +125,16 @@ export const Config: IConfig = {
     supportHtmlIncludes: false,
     buildOutputDir: 'christmas',
     indexFilename: '2020/index.html',
+  },
+  codeCafe: {
+    stackNamePrefix: 'code-cafe',
+    appRepoOwner: 'ndlib',
+    appRepoName: 'website-events-code-cafe',
+    appSourceBranch: 'master',
+    createWebhook: true,
+    createSpaRedirects: false,
+    supportHtmlIncludes: false,
+    buildOutputDir: 'code-cafe',
   },
   serviceContinuity: {
     stackNamePrefix: 'service-continuity',
