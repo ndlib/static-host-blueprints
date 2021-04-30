@@ -175,6 +175,20 @@ export const Config: IConfig = {
     supportHtmlIncludes: false,
     smokeTestsCollection: 'tests/postman/qa_collection.json'
   },
+  remix: {
+    stackNamePrefix: 'remix',
+    domainOverride: {
+      domainName: 'nd.edu',
+      certificateArnParam: '/all/remix/certificatearn',
+      stages: OverrideStages.PROD,
+    },
+    appRepoOwner: 'ndlib',
+    appRepoName: 'remix',
+    appSourceBranch: 'master',
+    createWebhook: true,
+    createSpaRedirects: false,
+    supportHtmlIncludes: false
+  }
 }
 
 export default Config
