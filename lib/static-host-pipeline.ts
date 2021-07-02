@@ -132,10 +132,11 @@ export class StaticHostPipelineStack extends cdk.Stack {
         contentType: 'text/html',
       },
     ]
+    const testStackName = `${props.projectEnv.stackNamePrefix}-test`
     const s3syncTest = new PipelineS3Sync(this, 'S3SyncTest', {
-      bucketNamePrefix: this.stackName,
-      bucketParamPath: `/all/stacks/${props.projectEnv.stackNamePrefix}-test/site-bucket-name`,
-      cloudFrontParamPath: `/all/stacks/${props.projectEnv.stackNamePrefix}-test/distribution-id`,
+      bucketNamePrefix: testStackName,
+      bucketParamPath: `/all/stacks/${testStackName}/site-bucket-name`,
+      cloudFrontParamPath: `/all/stacks/${testStackName}/distribution-id`,
       inputBuildArtifact: testBuildOutput,
       contentTypePatterns,
     })
@@ -193,10 +194,11 @@ export class StaticHostPipelineStack extends cdk.Stack {
       role: codebuildRole,
       outputDirectory: props.projectEnv.buildOutputDir,
     })
+    const prodStackName = `${props.projectEnv.stackNamePrefix}-prod`
     const s3syncProd = new PipelineS3Sync(this, 'S3SyncProd', {
-      bucketNamePrefix: this.stackName,
-      bucketParamPath: `/all/stacks/${props.projectEnv.stackNamePrefix}-prod/site-bucket-name`,
-      cloudFrontParamPath: `/all/stacks/${props.projectEnv.stackNamePrefix}-prod/distribution-id`,
+      bucketNamePrefix: prodStackName,
+      bucketParamPath: `/all/stacks/${prodStackName}/site-bucket-name`,
+      cloudFrontParamPath: `/all/stacks/${prodStackName}/distribution-id`,
       inputBuildArtifact: prodBuildOutput,
       contentTypePatterns,
     })
