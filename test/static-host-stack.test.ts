@@ -10,7 +10,7 @@ import {
 import cdk = require('@aws-cdk/core')
 import { CfnDistribution } from '@aws-cdk/aws-cloudfront'
 import { StaticHostStack } from '../lib/static-host-stack'
-import { OverrideStages } from '../lib/config'
+import { OverrideStages } from '../lib/config/constants'
 
 describe('StaticHostStack', () => {
   interface ISetupParams {
@@ -55,10 +55,9 @@ describe('StaticHostStack', () => {
     test('creates an s3 bucket for the site contents', () => {
       expectCDK(stack).to(
         haveResourceLike('AWS::S3::Bucket', {
-          BucketName: 'static-host-test-site-123456789',
           LoggingConfiguration: {
             DestinationBucketName: {
-              Ref: 'LogBucketCC3B17E8',
+              Ref: 'StaticHostLogBucket3A82CF66',
             },
             LogFilePrefix: {
               'Fn::Join': [
@@ -110,7 +109,7 @@ describe('StaticHostStack', () => {
                   {
                     EventType: 'origin-request',
                     LambdaFunctionARN: {
-                      Ref: stringLike('TransclusionLambdaCurrentVersion*'),
+                      Ref: stringLike('TransclusionLambdaFunctionCurrentVersion*'),
                     },
                   },
                 ]),
@@ -121,7 +120,7 @@ describe('StaticHostStack', () => {
                 {
                   EventType: 'origin-request',
                   LambdaFunctionARN: {
-                    Ref: stringLike('SPARedirectionLambdaCurrentVersion*'),
+                    Ref: stringLike('SPARedirectionLambdaFunctionCurrentVersion*'),
                   },
                 },
               ]),
@@ -136,9 +135,8 @@ describe('StaticHostStack', () => {
         haveResource('AWS::SSM::Parameter', {
           Type: 'String',
           Value: {
-            Ref: 'SiteBucket397A1860',
+            Ref: stringLike('StaticHostSiteBucket*'),
           },
-          Description: 'Bucket where the stack website deploys to.',
           Name: '/all/stacks/static-host-test/site-bucket-name',
         }),
       )
@@ -149,9 +147,8 @@ describe('StaticHostStack', () => {
         haveResource('AWS::SSM::Parameter', {
           Type: 'String',
           Value: {
-            Ref: 'DistributionCFDistribution882A7313',
+            Ref: stringLike('StaticHostDistributionCFDistribution*'),
           },
-          Description: 'ID of the CloudFront distribution.',
           Name: '/all/stacks/static-host-test/distribution-id',
         }),
       )
@@ -189,7 +186,7 @@ describe('StaticHostStack', () => {
           },
           ResourceRecords: [
             {
-              'Fn::GetAtt': ['DistributionCFDistribution882A7313', 'DomainName'],
+              'Fn::GetAtt': [stringLike('StaticHostDistributionCFDistribution*'), 'DomainName'],
             },
           ],
         }),

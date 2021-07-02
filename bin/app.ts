@@ -5,6 +5,7 @@ import { getRequiredContext, getContextByNamespace } from '../lib/context-helper
 import { ContextEnv } from '../lib/context-env'
 import { StaticHostStack } from '../lib/static-host-stack'
 import { StaticHostPipelineStack } from '../lib/static-host-pipeline'
+import { SourceWatcherStack } from '../lib/source-watcher-stack'
 import Config from '../lib/config'
 
 const app = new App()
@@ -38,18 +39,35 @@ if (stackType === 'service') {
     ...projectEnv,
   })
 } else {
+  const infraRepoOwner = getRequiredContext(app.node, 'infraRepoOwner')
+  const infraRepoName = getRequiredContext(app.node, 'infraRepoName')
+  const infraSourceBranch = getRequiredContext(app.node, 'infraSourceBranch')
+  const gitTokenPath = getRequiredContext(app.node, 'gitTokenPath')
+
+  const sourceWatcherStackName = getRequiredContext(app.node, 'sourceWatcher:stackName')
+  const sourceWatcher = new SourceWatcherStack(app, sourceWatcherStackName, {
+    webhookResourceStackName: getRequiredContext(app.node, 'sourceWatcher:webhookResourceStackName'),
+    infraRepoOwner,
+    infraRepoName,
+    infraSourceBranch,
+    gitTokenPath,
+    ...contextEnv,
+  })
+
   const pipelineName = `${projectEnv.stackNamePrefix}-pipeline`
-  new StaticHostPipelineStack(app, pipelineName, {
+  const pipeline = new StaticHostPipelineStack(app, pipelineName, {
     projectEnv,
     projectName: projectKey,
     contextEnvName: envName,
     contact: getRequiredContext(app.node, 'contact'),
     owner: getRequiredContext(app.node, 'owner'),
-    gitTokenPath: getRequiredContext(app.node, 'gitTokenPath'),
-    infraRepoOwner: getRequiredContext(app.node, 'infraRepoOwner'),
-    infraRepoName: getRequiredContext(app.node, 'infraRepoName'),
-    infraSourceBranch: getRequiredContext(app.node, 'infraSourceBranch'),
+    gitTokenPath,
+    infraRepoOwner,
+    infraRepoName,
+    infraSourceBranch,
     smokeTestsPath: getRequiredContext(app.node, 'smokeTestsPath'),
     ...contextEnv,
   })
+  // Ensure that we always have a source watcher for continuously delivery on the pipeline
+  pipeline.addDependency(sourceWatcher)
 }

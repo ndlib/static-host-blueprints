@@ -28,5 +28,8 @@
   "infraRepoOwner": "ndlib",
   "infraRepoName": "static-host-blueprints",
   "infraSourceBranch": "main",
-  "smokeTestsPath": "test/newman/smoke_tests.postman_collection.json"
+  "smokeTestsPath": "test/newman/smoke_tests.postman_collection.json",
+
+  "sourceWatcher:stackName": "static-host-source-watcher",
+  "sourceWatcher:webhookResourceStackName": "github-webhook-custom-resource-dev"
 }

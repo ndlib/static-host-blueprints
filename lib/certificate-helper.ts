@@ -1,7 +1,7 @@
 import { ICertificate, Certificate } from '@aws-cdk/aws-certificatemanager'
 import { StringParameter } from '@aws-cdk/aws-ssm'
 import { Construct, Fn } from '@aws-cdk/core'
-import { OverrideStages } from './config'
+import { OverrideStages } from './config/constants'
 
 export interface ICertificateHelperProps {
   readonly stage: string

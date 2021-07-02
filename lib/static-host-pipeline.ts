@@ -7,13 +7,13 @@ import {
 } from '@aws-cdk/aws-codepipeline-actions'
 import { Role, ServicePrincipal } from '@aws-cdk/aws-iam'
 import * as sns from '@aws-cdk/aws-sns'
+import { StringParameter } from '@aws-cdk/aws-ssm'
 import * as cdk from '@aws-cdk/core'
-import { ArtifactBucket, PipelineNotifications, SlackApproval, NewmanRunner } from '@ndlib/ndlib-cdk'
+import { ArtifactBucket, PipelineNotifications, SlackApproval, NewmanRunner, PipelineS3Sync } from '@ndlib/ndlib-cdk'
 import { CertificateHelper } from './certificate-helper'
 import { IProjectDefaults } from './config'
 import StaticHostBuildProject from './static-host-build-project'
 import StaticHostBuildRole from './static-host-build-role'
-import { PipelineS3Sync } from './pipeline-s3-sync'
 
 const stages = ['test', 'prod']
 
@@ -78,6 +78,13 @@ export class StaticHostPipelineStack extends cdk.Stack {
       artifactBucket,
       role: codepipelineRole,
     })
+    // Output the pipeline name so that the SourceWatcherLambda can look it up with just the stack name
+    new StringParameter(this, 'PipelineNameParameter', {
+      parameterName: `/all/stacks/${this.stackName}/pipeline-name`,
+      description: 'Name of the CodePipeline.',
+      stringValue: pipeline.pipelineName,
+    })
+
     if (props.notificationReceivers) {
       new PipelineNotifications(this, 'PipelineNotifications', {
         pipeline,
@@ -119,9 +126,18 @@ export class StaticHostPipelineStack extends cdk.Stack {
       role: codebuildRole,
       outputDirectory: props.projectEnv.buildOutputDir,
     })
+    const contentTypePatterns = [
+      {
+        pattern: '*.shtml',
+        contentType: 'text/html',
+      },
+    ]
     const s3syncTest = new PipelineS3Sync(this, 'S3SyncTest', {
-      targetStack: `${props.projectEnv.stackNamePrefix}-test`,
+      bucketNamePrefix: this.stackName,
+      bucketParamPath: `/all/stacks/${props.projectEnv.stackNamePrefix}-test/site-bucket-name`,
+      cloudFrontParamPath: `/all/stacks/${props.projectEnv.stackNamePrefix}-test/distribution-id`,
       inputBuildArtifact: testBuildOutput,
+      contentTypePatterns,
     })
     const deployToTestAction = new CodeBuildAction({
       actionName: 'Build',
@@ -138,7 +154,9 @@ export class StaticHostPipelineStack extends cdk.Stack {
       collectionPath: props.projectEnv.smokeTestsCollection || props.smokeTestsPath,
       collectionVariables: {
         hostname: testHost,
-        maxResponseTime: (props.projectEnv.smokeTestsResponseTime || props.projectEnv.supportHtmlIncludes ? 5000 : 1000).toString()
+        maxResponseTime: (
+          props.projectEnv.smokeTestsResponseTime || props.projectEnv.supportHtmlIncludes ? 5000 : 1000
+        ).toString(),
       },
       actionName: 'SmokeTests',
       sourceArtifact: props.projectEnv.smokeTestsCollection ? appSourceArtifact : infraSourceArtifact,
@@ -176,8 +194,11 @@ export class StaticHostPipelineStack extends cdk.Stack {
       outputDirectory: props.projectEnv.buildOutputDir,
     })
     const s3syncProd = new PipelineS3Sync(this, 'S3SyncProd', {
-      targetStack: `${props.projectEnv.stackNamePrefix}-prod`,
+      bucketNamePrefix: this.stackName,
+      bucketParamPath: `/all/stacks/${props.projectEnv.stackNamePrefix}-prod/site-bucket-name`,
+      cloudFrontParamPath: `/all/stacks/${props.projectEnv.stackNamePrefix}-prod/distribution-id`,
       inputBuildArtifact: prodBuildOutput,
+      contentTypePatterns,
     })
     const deployToProdAction = new CodeBuildAction({
       actionName: 'Build',
@@ -194,7 +215,9 @@ export class StaticHostPipelineStack extends cdk.Stack {
       collectionPath: props.projectEnv.smokeTestsCollection || props.smokeTestsPath,
       collectionVariables: {
         hostname: prodHost,
-        maxResponseTime: (props.projectEnv.smokeTestsResponseTime || props.projectEnv.supportHtmlIncludes ? 5000 : 1000).toString()
+        maxResponseTime: (
+          props.projectEnv.smokeTestsResponseTime || props.projectEnv.supportHtmlIncludes ? 5000 : 1000
+        ).toString(),
       },
       actionName: 'SmokeTests',
       sourceArtifact: props.projectEnv.smokeTestsCollection ? appSourceArtifact : infraSourceArtifact,

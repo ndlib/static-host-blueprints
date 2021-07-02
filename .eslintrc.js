@@ -2,35 +2,48 @@ module.exports = {
   overrides: [
     {
       files: ['**/*.js'],
-      parser: 'babel-eslint',
       parserOptions: {
         ecmaVersion: 2020,
       },
       extends: ['standard', 'plugin:node/recommended'],
-      plugins: ['babel', 'promise', 'jest'],
+      plugins: ['promise', 'jest'],
       env: {
         browser: true,
         'jest/globals': true,
       },
       rules: {
-        'brace-style': [2, '1tbs'],
-        'comma-dangle': [2, 'always-multiline'],
-        indent: ['error', 2, { SwitchCase: 1 }],
-        'jsx-quotes': [2, 'prefer-single'],
-        'key-spacing': 0,
-        'max-len': [0, 120, 2],
-        'no-unused-vars': [1, { vars: 'all', args: 'after-used', ignoreRestSiblings: false }],
-        'no-var': 1,
-        'object-curly-spacing': [2, 'always'],
-        'prefer-const': [
-          1,
-          {
-            destructuring: 'any',
-            ignoreReadBeforeAssign: true,
-          },
-        ],
-        semi: [2, 'never'],
+        'brace-style': ['error', '1tbs'],
+        'comma-dangle': ['error', 'always-multiline'],
+        indent: ['error', 2, {
+          SwitchCase: 1,
+        }],
+        'jsx-quotes': ['error', 'prefer-single'],
+        'key-spacing': ['warn', {
+          mode: 'minimum',
+        }],
+        'max-len': ['warn', {
+          code: 120,
+          tabWidth: 2,
+          ignoreComments: true,
+        }],
+        'no-unused-vars': ['warn', {
+          vars: 'all',
+          args: 'after-used',
+          ignoreRestSiblings: false,
+        }],
+        'no-var': 'error',
+        'object-curly-spacing': ['error', 'always'],
+        'prefer-const': ['warn', {
+          destructuring: 'any',
+          ignoreReadBeforeAssign: true,
+        }],
+        semi: ['error', 'never'],
         'space-in-parens': ['error', 'never'],
+        'space-before-function-paren': ['error', {
+          anonymous: 'never',
+          named: 'never',
+          asyncArrow: 'always',
+        }],
       },
     },
     {
@@ -42,12 +55,48 @@ module.exports = {
       },
       extends: [
         'plugin:@typescript-eslint/recommended', // Uses the recommended rules from the @typescript-eslint/eslint-plugin
-        'prettier/@typescript-eslint', // Uses eslint-config-prettier to disable ESLint rules from @typescript-eslint/eslint-plugin that would conflict with prettier
-        'plugin:prettier/recommended', // Enables eslint-plugin-prettier and eslint-config-prettier. This will display prettier errors as ESLint errors. Make sure this is always the last configuration in the extends array.
       ],
       rules: {
-        // Place to specify ESLint rules. Can be used to overwrite rules specified from the extended configs
-        // e.g. "@typescript-eslint/explicit-function-return-type": "off",
+        'brace-style': ['error', '1tbs'],
+        'comma-dangle': 'off',
+        '@typescript-eslint/comma-dangle': ['error', 'always-multiline'],
+        indent: ['error', 2, {
+          SwitchCase: 1,
+        }],
+        quotes: ['error', 'single'],
+        'jsx-quotes': ['error', 'prefer-single'],
+        'key-spacing': ['warn', {
+          mode: 'minimum',
+        }],
+        '@typescript-eslint/type-annotation-spacing': ['warn'],
+        'max-len': ['warn', {
+          code: 120,
+          tabWidth: 2,
+          ignoreComments: true,
+        }],
+        'object-curly-spacing': 'off',
+        '@typescript-eslint/object-curly-spacing': ['error', 'always'],
+        'prefer-const': ['warn', {
+          destructuring: 'any',
+          ignoreReadBeforeAssign: true,
+        }],
+        semi: 'off',
+        '@typescript-eslint/semi': ['error', 'never'],
+        '@typescript-eslint/member-delimiter-style': ['error', {
+          multiline: {
+            delimiter: 'none',
+          },
+          singleline: {
+            delimiter: 'comma',
+          },
+        }],
+        'space-in-parens': ['error', 'never'],
+        'space-before-function-paren': 'off',
+        '@typescript-eslint/space-before-function-paren': ['error', {
+          anonymous: 'never',
+          named: 'never',
+          asyncArrow: 'always',
+        }],
       },
     },
   ],
