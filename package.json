@@ -64,7 +64,7 @@
     "@aws-cdk/aws-ssm": "1.111.0",
     "@aws-cdk/core": "1.111.0",
     "@aws-cdk/custom-resources": "1.111.0",
-    "@ndlib/ndlib-cdk": "1.9.2",
+    "@ndlib/ndlib-cdk": "1.9.3",
     "source-map-support": "^0.5.16"
   },
   "engines": {

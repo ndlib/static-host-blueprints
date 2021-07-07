@@ -1233,10 +1233,10 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@ndlib/ndlib-cdk@1.9.2":
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/@ndlib/ndlib-cdk/-/ndlib-cdk-1.9.2.tgz#e7c994835bed7c5252694c4c24c9305528f26089"
-  integrity sha512-SgCs07VY4AKzr+gqNjWlFFXo0yQkPc/sO52M9aLylH/W5kp5WbQMEEA0f71/uXyT0BOp9JxXn+LuvfktKwgXtA==
+"@ndlib/ndlib-cdk@1.9.3":
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/@ndlib/ndlib-cdk/-/ndlib-cdk-1.9.3.tgz#da0e6b1b66dcf24706250d3c785537d843116368"
+  integrity sha512-lGJRhn7JPqIgAxzI6JEICv31DvfSGvptj41NDeGoFGP9PlJGBsYrPTD1ZmUKPrioEOoaDXTZEBkDCTOHOmty4A==
   dependencies:
     "@aws-cdk/aws-apigateway" "^1.91.0"
     "@aws-cdk/aws-cloudformation" "^1.91.0"
