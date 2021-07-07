@@ -45,6 +45,7 @@ const files = fs.readdirSync(projectsPath)
 const projectConfig: IConfig = {}
 files.forEach(filename => {
   const fileNoExtension = path.parse(filename).name
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   projectConfig[fileNoExtension] = require(path.join(projectsPath, filename)).default
 })
 

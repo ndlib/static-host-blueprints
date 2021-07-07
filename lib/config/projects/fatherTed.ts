@@ -15,7 +15,7 @@ export const Config: IProjectDefaults = {
   createWebhook: true,
   createSpaRedirects: false,
   supportHtmlIncludes: false,
-  smokeTestsCollection: 'tests/postman/qa_collection.json'
+  smokeTestsCollection: 'tests/postman/qa_collection.json',
 }
 
 export default Config

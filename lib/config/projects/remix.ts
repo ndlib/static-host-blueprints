@@ -13,7 +13,7 @@ export const Config: IProjectDefaults = {
   appSourceBranch: 'master',
   createWebhook: true,
   createSpaRedirects: false,
-  supportHtmlIncludes: false
+  supportHtmlIncludes: false,
 }
 
 export default Config
