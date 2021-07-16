@@ -32,11 +32,14 @@ export default class StaticHostBuildProject extends PipelineProject {
       'supportHtmlIncludes',
       'indexFilename',
       'cacheTtl',
+      'domainOverride',
     ]
 
     const additionalContext: string[] = []
     projectContextKeys.forEach(key => {
-      if (!props.projectEnv[key]) {
+      // You can use empty string to deliberately override the default context value with nothing
+      // Objects are NOT supported with cli context so those will be omitted
+      if ((!props.projectEnv[key] && props.projectEnv[key] !== '') || typeof props.projectEnv[key] === 'object') {
         return
       }
       additionalContext.push(`-c ${props.projectName}:${key}="${props.projectEnv[key]}"`)
