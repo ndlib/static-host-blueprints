@@ -46,7 +46,6 @@ if (stackType === 'service') {
 
   const sourceWatcherStackName = getRequiredContext(app.node, 'sourceWatcher:stackName')
   const sourceWatcher = new SourceWatcherStack(app, sourceWatcherStackName, {
-    webhookResourceStackName: getRequiredContext(app.node, 'sourceWatcher:webhookResourceStackName'),
     infraRepoOwner,
     infraRepoName,
     infraSourceBranch,

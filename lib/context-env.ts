@@ -9,6 +9,7 @@ export interface IContextEnv {
   readonly domainStackName?: string
   readonly slackNotifyStackName?: string
   readonly notificationReceivers?: string
+  readonly webhookResourceStackName: string
 }
 
 export class ContextEnv implements IContextEnv {
@@ -18,6 +19,7 @@ export class ContextEnv implements IContextEnv {
   public readonly domainStackName?: string
   public readonly slackNotifyStackName?: string
   public readonly notificationReceivers?: string
+  public readonly webhookResourceStackName: string
 
   public static fromContext = (node: ConstructNode, name: string): IContextEnv => {
     const contextEnv = getRequiredContext(node, 'environments')[name]
