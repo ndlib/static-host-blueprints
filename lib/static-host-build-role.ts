@@ -104,7 +104,10 @@ export class StaticHostBuildRole extends Role {
     const prefix = (props.hostnamePrefix || props.stackNamePrefix).substring(0, 25)
     this.addToPolicy(
       new PolicyStatement({
-        resources: [cdk.Fn.sub('arn:aws:s3:::' + prefix + '*')],
+        resources: [
+          ...serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName.substring(0, 25) + '*')),
+          cdk.Fn.sub('arn:aws:s3:::' + prefix + '*'),
+        ],
         actions: [
           's3:CreateBucket',
           's3:ListBucket*',
@@ -117,7 +120,7 @@ export class StaticHostBuildRole extends Role {
     )
     this.addToPolicy(
       new PolicyStatement({
-        resources: serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName + '*/*')),
+        resources: serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName.substring(0, 25) + '*/*')),
         actions: ['s3:GetObject*', 's3:DeleteObject*', 's3:PutObject*', 's3:Abort*', 's3:ReplicateTags'],
       }),
     )
