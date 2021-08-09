@@ -4,6 +4,7 @@ import * as cdk from '@aws-cdk/core'
 
 export interface IStaticHostBuildRoleProps extends RoleProps {
   readonly stackNamePrefix: string
+  readonly hostnamePrefix?: string
   readonly stages: string[]
   readonly artifactBucket: Bucket
   readonly createDns: boolean
@@ -100,9 +101,10 @@ export class StaticHostBuildRole extends Role {
       }),
     )
     // Allow creating and managing s3 bucket for site
+    const prefix = (props.hostnamePrefix || props.stackNamePrefix).substring(0, 25)
     this.addToPolicy(
       new PolicyStatement({
-        resources: serviceStacks.map((stackName) => cdk.Fn.sub('arn:aws:s3:::' + stackName + '*')),
+        resources: [cdk.Fn.sub('arn:aws:s3:${AWS::Region}:${AWS::AccountId}:' + prefix + '*')],
         actions: [
           's3:CreateBucket',
           's3:ListBucket*',

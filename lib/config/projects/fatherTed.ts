@@ -2,7 +2,7 @@ import { OverrideStages } from '../constants'
 import { IProjectDefaults } from '../index'
 
 export const Config: IProjectDefaults = {
-  stackNamePrefix: 'father-ted-archive',
+  stackNamePrefix: 'hesburgh-portal',
   hostnamePrefix: 'hesburghportal',
   domainOverride: {
     domainName: 'nd.edu',

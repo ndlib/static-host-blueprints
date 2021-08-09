@@ -62,6 +62,7 @@ export class StaticHostPipelineStack extends cdk.Stack {
     const codebuildRole = new StaticHostBuildRole(this, 'CodeBuildTrustRole', {
       assumedBy: new ServicePrincipal('codebuild.amazonaws.com'),
       stackNamePrefix: props.projectEnv.stackNamePrefix,
+      hostnamePrefix: props.projectEnv.hostnamePrefix,
       stages,
       artifactBucket,
       createDns: props.contextEnv.createDns,
