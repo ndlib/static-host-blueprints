@@ -26,13 +26,17 @@ export class ContextEnv implements IContextEnv {
     if (contextEnv === undefined || contextEnv === null) {
       throw new Error(`Context key 'environments.${name}' is required.`)
     }
+    /* eslint-disable max-len */
     return {
+      ...contextEnv,
       name: name,
       env: { account: contextEnv.account, region: contextEnv.region, name: contextEnv.name },
-      createDns: contextEnv.createDns || false,
-      // This should only include optional values
-      ...contextEnv,
+      createDns: node.tryGetContext(`environments:${name}:createDns`) || contextEnv.createDns || false,
+      domainStackName: node.tryGetContext(`environments:${name}:domainStackName`) || contextEnv.domainStackName,
+      slackNotifyStackName: node.tryGetContext(`environments:${name}:slackNotifyStackName`) || contextEnv.slackNotifyStackName,
+      webhookResourceStackName: node.tryGetContext(`environments:${name}:webhookResourceStackName`) || contextEnv.webhookResourceStackName,
     }
+    /* eslint-enable max-len */
   }
 }
 

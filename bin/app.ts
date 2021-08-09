@@ -57,7 +57,7 @@ if (stackType === 'service') {
   const pipeline = new StaticHostPipelineStack(app, pipelineName, {
     projectEnv,
     projectName: projectKey,
-    contextEnvName: envName,
+    contextEnv,
     contact: getRequiredContext(app.node, 'contact'),
     owner: getRequiredContext(app.node, 'owner'),
     gitTokenPath,
@@ -65,7 +65,6 @@ if (stackType === 'service') {
     infraRepoName,
     infraSourceBranch,
     smokeTestsPath: getRequiredContext(app.node, 'smokeTestsPath'),
-    ...contextEnv,
   })
   // Ensure that we always have a source watcher for continuously delivery on the pipeline
   pipeline.addDependency(sourceWatcher)

@@ -14,6 +14,7 @@ import { CertificateHelper } from './certificate-helper'
 import { IProjectDefaults } from './config'
 import StaticHostBuildProject from './static-host-build-project'
 import StaticHostBuildRole from './static-host-build-role'
+import { IContextEnv } from './context-env'
 
 const stages = ['test', 'prod']
 
@@ -21,7 +22,7 @@ export interface IStaticHostPipelineStackProps extends cdk.StackProps {
   readonly projectEnv: IProjectDefaults
 
   readonly projectName: string
-  readonly contextEnvName: string
+  readonly contextEnv: IContextEnv
   readonly contact: string
   readonly owner: string
   readonly gitTokenPath: string
@@ -29,10 +30,6 @@ export interface IStaticHostPipelineStackProps extends cdk.StackProps {
   readonly infraRepoName: string
   readonly infraSourceBranch: string
   readonly smokeTestsPath: string
-  readonly createDns: boolean
-  readonly domainStackName?: string
-  readonly slackNotifyStackName?: string
-  readonly notificationReceivers?: string
 }
 
 export class StaticHostPipelineStack extends cdk.Stack {
@@ -42,12 +39,12 @@ export class StaticHostPipelineStack extends cdk.Stack {
     // Find the domain name and certificate to use
     const testCertHelper = new CertificateHelper(this, 'TestCertHelper', {
       stage: 'test',
-      domainStackName: props.domainStackName,
+      domainStackName: props.contextEnv.domainStackName,
       domainOverride: props.projectEnv.domainOverride,
     })
     const prodCertHelper = new CertificateHelper(this, 'ProdCertHelper', {
       stage: 'prod',
-      domainStackName: props.domainStackName,
+      domainStackName: props.contextEnv.domainStackName,
       domainOverride: props.projectEnv.domainOverride,
     })
 
@@ -67,8 +64,8 @@ export class StaticHostPipelineStack extends cdk.Stack {
       stackNamePrefix: props.projectEnv.stackNamePrefix,
       stages,
       artifactBucket,
-      createDns: props.createDns,
-      domainStackName: props.domainStackName,
+      createDns: props.contextEnv.createDns,
+      domainStackName: props.contextEnv.domainStackName,
       certificateArnParam: props.projectEnv.domainOverride?.certificateArnParam,
       additionalPolicies: props.projectEnv.deploymentPolicies,
     })
@@ -85,10 +82,10 @@ export class StaticHostPipelineStack extends cdk.Stack {
       stringValue: pipeline.pipelineName,
     })
 
-    if (props.notificationReceivers) {
+    if (props.contextEnv.notificationReceivers) {
       new PipelineNotifications(this, 'PipelineNotifications', {
         pipeline,
-        receivers: props.notificationReceivers,
+        receivers: props.contextEnv.notificationReceivers,
       })
     }
 
@@ -173,10 +170,10 @@ export class StaticHostPipelineStack extends cdk.Stack {
       additionalInformation: 'Approve or Reject this change after testing',
       runOrder: 99, // Approval should always be last
     })
-    if (props.slackNotifyStackName) {
+    if (props.contextEnv.slackNotifyStackName) {
       new SlackApproval(this, 'SlackApproval', {
         approvalTopic,
-        notifyStackName: props.slackNotifyStackName,
+        notifyStackName: props.contextEnv.slackNotifyStackName,
       })
     }
 
