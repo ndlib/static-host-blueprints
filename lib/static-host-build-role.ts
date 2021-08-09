@@ -104,7 +104,7 @@ export class StaticHostBuildRole extends Role {
     const prefix = (props.hostnamePrefix || props.stackNamePrefix).substring(0, 25)
     this.addToPolicy(
       new PolicyStatement({
-        resources: [cdk.Fn.sub('arn:aws:s3:${AWS::Region}:${AWS::AccountId}:' + prefix + '*')],
+        resources: [cdk.Fn.sub('arn:aws:s3:::' + prefix + '*')],
         actions: [
           's3:CreateBucket',
           's3:ListBucket*',
