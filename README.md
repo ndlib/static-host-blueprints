@@ -8,7 +8,7 @@ Infrastructure for deploying static websites in a repeatable fashion to be hoste
 
 ### Pipeline
 ```
-cdk deploy -c env=<dev|prod> -c project=<projectName> -c stackType=pipeline -c slackNotifyStackName=[stackName] --all
+cdk deploy -c env=<dev|prod> -c project=<projectName> -c stackType=pipeline -c environments:<div|prod>:slackNotifyStackName=[stackName] --all
 ```
 
 ### Service Stack
