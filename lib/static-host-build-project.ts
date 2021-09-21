@@ -112,6 +112,7 @@ export default class StaticHostBuildProject extends PipelineProject {
                 ${additionalContext.join(' ')} \
                 --require-approval=never
               `,
+              'cd -',
             ],
           },
           // Now build the actual application (if applicable)
